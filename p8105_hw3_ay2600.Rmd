@@ -1,0 +1,66 @@
+---
+title: "Data Science HW 3"
+author: "Hingling Yu"
+date: "2023-10-07"
+output: github_document
+geometry: margin = 0.85in
+fontsize: 12pt
+---
+
+## Problem 0
+
+```{r setup, include=FALSE}
+library(tidyverse)
+
+
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = 0.6,
+  out.width = "90%"
+)
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.color = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_color_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+```
+
+## Problem 1
+
+```{r load_dataset}
+library(p8105.datasets)
+data("instacart")
+str(instacart)
+```
+
+
+```{r}
+# How many aisles
+num_aisles = 
+  instacart %>% 
+  group_by(aisle)%>% 
+  summarize(n_obs = n())
+
+# Find out the aisles with most items ordered
+most_ordered_aisle =
+  instacart %>% 
+  group_by(aisle) %>% 
+  summarize(total_items_ordered = n()) %>% 
+  arrange(-total_items_ordered)
+```
+
+There are `r nrow(num_aisles)` aisles
+
+The aisle with the most items ordered from is `r instacart |> group_by(aisle) |> summarize(total_items_ordered = n()) |> arrange(-total_items_ordered) |> slice(1) |> pull(aisle)`.
+
+
+
+
+
+
+
+
