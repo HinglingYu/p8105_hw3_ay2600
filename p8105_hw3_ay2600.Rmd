@@ -55,17 +55,49 @@ instacart =
 - In total, there are `r instacart |> select(product_id) |> distinct() |> count()` products found in `r instacart |> select(user_id, order_id) |> distinct() |> count()` orders from `r instacart |> select(user_id) |> distinct() |> count()` distinct users.
 
 ```{r}
-# How many aisles
 instacart |>
-  count(aisle) |> 
-  arrange(desc(n))
+  count(aisle) |> # How many aisles
+  arrange(desc(n)) # See what aisles are the most items order from so descending
 ```
 
 - According to the table above, there are 134 aisles in total, and fresh vegetables and fresh fruits are the most items ordered from.
 
 
+#### Make a plot that shows the number of items ordered in each aisle
+
+```{r}
+instacart|> 
+  count(aisle) |> # count the number of items order in each aisles
+  filter(n > 10000) |> # Want aisles with more than 10000 items ordered
+  mutate(aisle = fct_reorder(aisle, n)) |> # order aisles by the number of items order
+  ggplot(aes(x = aisle, y = n)) +
+  geom_point() +
+  labs(
+    title = "Number of items ordered in each aisle", # Give a title to the plot
+    y = "Number of items(n)") + # Give the y-axis a easier understand label
+  theme(axis.text.x = element_text(angle = 60, hjust = 1)) # Twist the angle of text in the x-axis for easier reading
+```
 
 
+#### Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
+
+
+
+
+#### Table of three most popular items in selected aisles
+
+```{r}
+instacart |>
+  filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) |>
+  group_by(aisle) |>
+  count(product_name) |>
+  mutate(rank = min_rank(desc(n))) |># rank by descending so we can easily get the top 3 popular products in each of the aisle we want
+  filter(rank < 4) |> # filter the top 3 popular items
+  arrange(desc(n)) |> # arrange with the most number of items ordered first
+  rename(number_of_times_ordered = n)|> # rename n to number_of_times_ordered
+  select(-rank)|> #remove variable rank
+  knitr::kable()
+```
 
 
 
