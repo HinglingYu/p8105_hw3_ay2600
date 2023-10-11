@@ -9,6 +9,8 @@ fontsize: 12pt
 
 ## Problem 0
 
+- Set up, with R code hided
+
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(ggridges)
@@ -79,11 +81,6 @@ instacart|>
 ```
 
 
-#### Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
-
-
-
-
 #### Table of three most popular items in selected aisles
 
 ```{r}
@@ -101,7 +98,20 @@ instacart |>
 
 
 
+#### Table of the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week
 
+```{r}
+instacart |>
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) |>
+  group_by(product_name, order_dow) |>
+  summarize(mean_hour = mean(order_hour_of_day)) |>
+  pivot_wider(
+    names_from = order_dow,
+    values_from = mean_hour
+  ) |>
+  knitr::kable(digits = 2)
+
+```
 
 
 
