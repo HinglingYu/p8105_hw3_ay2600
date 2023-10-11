@@ -11,51 +11,60 @@ fontsize: 12pt
 
 ```{r setup, include=FALSE}
 library(tidyverse)
+library(ggridges)
+library(patchwork)
 
+library(p8105.datasets)
 
 knitr::opts_chunk$set(
-  fig.width = 6,
-  fig.asp = 0.6,
+	echo = TRUE,
+	warning = FALSE,
+	fig.width = 8, 
+  fig.height = 6,
   out.width = "90%"
 )
+
 theme_set(theme_minimal() + theme(legend.position = "bottom"))
 
 options(
-  ggplot2.continuous.color = "viridis",
+  ggplot2.continuous.colour = "viridis",
   ggplot2.continuous.fill = "viridis"
 )
 
-scale_colour_discrete = scale_color_viridis_d
+scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
 ```
 
+
 ## Problem 1
 
-```{r load_dataset}
-library(p8105.datasets)
+#### Read dataset
+
+```{r}
 data("instacart")
-str(instacart)
+
+instacart = 
+  instacart |> 
+  as_tibble()
 ```
 
+#### Answer the questions
+
+- The `instacart` dataset contains `r nrow(instacart)` of rows, and each row representing a single product from an instacart order. Also contains `r ncol(instacart)`columns, which are variables include identifiers for user, order, and product; the order in which each product was added to the cart. There are several order-level variables, describing the day and time of the order, and number of days since prior order. Then there are several item-specific variables, describing the product name (e.g. Yogurt, Avocado), department (e.g. dairy and eggs, produce), and aisle (e.g. yogurt, fresh fruits), and whether the item has been ordered by this user in the past. 
+
+- In total, there are `r instacart |> select(product_id) |> distinct() |> count()` products found in `r instacart |> select(user_id, order_id) |> distinct() |> count()` orders from `r instacart |> select(user_id) |> distinct() |> count()` distinct users.
 
 ```{r}
 # How many aisles
-num_aisles = 
-  instacart %>% 
-  group_by(aisle)%>% 
-  summarize(n_obs = n())
-
-# Find out the aisles with most items ordered
-most_ordered_aisle =
-  instacart %>% 
-  group_by(aisle) %>% 
-  summarize(total_items_ordered = n()) %>% 
-  arrange(-total_items_ordered)
+instacart |>
+  count(aisle) |> 
+  arrange(desc(n))
 ```
 
-There are `r nrow(num_aisles)` aisles
+- According to the table above, there are 134 aisles in total, and fresh vegetables and fresh fruits are the most items ordered from.
 
-The aisle with the most items ordered from is `r instacart |> group_by(aisle) |> summarize(total_items_ordered = n()) |> arrange(-total_items_ordered) |> slice(1) |> pull(aisle)`.
+
+
 
 
 
