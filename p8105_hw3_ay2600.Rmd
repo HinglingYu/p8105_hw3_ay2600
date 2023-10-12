@@ -170,7 +170,7 @@ excellent_brfss =
   group_by(year, locationabbr) |>
   summarize(avg_data_value = mean(data_value, na.rm = TRUE))
 
-# 
+# Plot of average `data_value` over time within a state
 excellent_brfss |>
   ggplot(aes(x = year, y = avg_data_value, group = locationabbr, color = locationabbr)) +
   geom_line() +
@@ -196,10 +196,46 @@ brfss_ny_2006_2010 =
 brfss_ny_2006_2010 |>
   ggplot(aes(x = response, y = data_value)) +
   geom_boxplot() +
-  facet_wrap(~ year, ncol = 2) +
+  facet_grid(. ~ year) +
   labs(title = "Distribution of Data Value by Response in NY",
        x = "Response",
        y = "Data Value")
 ```
+
+## Problem 3
+
+#### Clean the `nhanes_aceel` dataset
+
+```{r}
+clean_nhanes_accel = 
+  read_csv("data/nhanes_accel.csv") |>
+  janitor::clean_names() 
+```
+
+
+#### Clean the `nhanes_covar` dataset
+```{r}
+clean_nhanes_covar =
+  read_csv("data/nhanes_covar.csv", skip = 4) |>
+  janitor::clean_names() |>
+  filter(age >= 21) |>
+  mutate(
+    sex = ifelse(sex == 1, "male", "female"),
+    education = case_when(
+      education == 1 ~ "less than high school",
+      education == 2 ~ "high school equivalent",
+      education == 3 ~ "more than high school"),
+    education = fct_relevel(education, "less than high school", "high school equivalent", "more than high school")
+  )
+
+```
+
+#### Combine `nhanes_covar` and `nhanes_aceel` datasets
+
+```{r}
+merged_nhanes = 
+  left_join(clean_nhanes_covar, clean_nhanes_accel, by = "seqn")
+```
+
 
 
