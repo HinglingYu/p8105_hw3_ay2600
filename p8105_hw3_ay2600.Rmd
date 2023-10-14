@@ -20,10 +20,7 @@ library(p8105.datasets)
 
 knitr::opts_chunk$set(
 	echo = TRUE,
-	warning = FALSE,
-	fig.width = 10, 
-  fig.height = 8,
-  out.width = "90%"
+	warning = FALSE
 )
 
 theme_set(theme_minimal() + theme(legend.position = "bottom"))
@@ -199,7 +196,7 @@ brfss_ny_2006_2010 |>
   facet_grid(. ~ year) +
   labs(title = "Distribution of Data Value by Response in NY",
        x = "Response",
-       y = "Data Value")
+       y = "Data Value") 
 ```
 
 ## Problem 3
@@ -209,7 +206,16 @@ brfss_ny_2006_2010 |>
 ```{r}
 clean_nhanes_accel = 
   read_csv("data/nhanes_accel.csv") |>
-  janitor::clean_names() 
+  janitor::clean_names() |>
+  pivot_longer(                                            
+    min1:min1440,
+    names_to = "min",
+    values_to = "mims",
+    names_prefix = "min"
+  ) |>
+  mutate(
+    min = as.numeric(min)
+  )
 ```
 
 
@@ -219,6 +225,7 @@ clean_nhanes_covar =
   read_csv("data/nhanes_covar.csv", skip = 4) |>
   janitor::clean_names() |>
   filter(age >= 21) |>
+  drop_na() |>
   mutate(
     sex = ifelse(sex == 1, "male", "female"),
     education = case_when(
@@ -235,6 +242,76 @@ clean_nhanes_covar =
 ```{r}
 merged_nhanes = 
   left_join(clean_nhanes_covar, clean_nhanes_accel, by = "seqn")
+```
+
+
+#### Table for the number of men and women in each education category
+
+```{r}
+merged_nhanes|>
+  group_by(sex, education) |>
+  distinct(seqn) |>
+  summarize(count = n()) |>
+  knitr::kable()
+```
+
+#### Plot of age distribution by gender and education
+
+```{r}
+merged_nhanes|>
+  ggplot(aes(x = education, y = age, fill = sex)) +
+  geom_boxplot() + 
+  labs(title = "Age distribution by Gender and Education", 
+       y = "Age", 
+       x = "Education") 
+
+str(merged_nhanes)
+```
+
+- The plot displays the age distribution segmented by gender (male and female) and education level (less than high school, high school equivalent, and more than high school). Within the "less than high school" level, females have a slightly higher median age than males. In the "high school equivalent" level, the median age for females is higher compared to males. For those with "more than high school" education, the median ages of males and females are close around the age of 40s.The median age tends to decrease with higher education for both genders. Also, both males and females exhibit similar age distributions across the different education levels.  Across all education levels, the age range of males and females exhibits considerable overlap, but the interquartile range for males appears broader, especially in the "high school equivalent" level.
+
+#### Plot of total activities vs age by sex and education level
+
+```{r, warning=FALSE}
+# Aggregate activity by sequence number
+
+total_activity_nhanes =
+  merged_nhanes |>
+  group_by(seqn, sex, age, education) |>
+  summarize(
+    total_activity = sum(mims)
+    )
+
+total_activity_nhanes |>
+  ggplot(aes(x = age, y = total_activity, color = sex)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(se = FALSE) + 
+  facet_grid(. ~ education) +
+  labs(title = "Total Activity vs Age by Sex and Education Level", 
+       x = "Age", 
+       y = "Total Activity") +
+  theme_minimal()
+```
+
+- According to the plot, total activity tends to decrease with age. It is noticeable across all education levels, where younger individuals generally have higher total activity compared to their older counterparts. The decline is particularly sharp after the age of 60, suggesting a significant reduction in physical activity as people approach later stages of life.
+
+- There are noticeable differences between men and women. In the "less than high school" education level, males have higher activity level than females between the age 40 to 80. 
+
+- In both "high school equivalent" and "more than high school" education level, females appear to have higher total activity than males, especially in the age range of 20 to 60. Interestingly, the female's total activity level increase again for a little bit between the age 60 to 70 in the "high school equivalent" education level. Among those with "more than high school" education, the activity levels drop significantly only after the age of 60, and the differences between male and female activity levels seem less consistent, especially in the age range of 40 to 60.
+
+# Plot of 24-hour Activity Time Courses by Education Level
+
+```{r}
+merged_nhanes |>
+  ggplot(aes(x = min, y = mims, group = seqn, color = sex)) +
+  geom_line(alpha = .2) +
+  geom_smooth(aes(group = sex), se = FALSE) +
+  facet_grid(. ~ education) +
+  labs(
+    title = "24-hour Activity Time Courses by Education Level",
+    x = "Time (in mins)",
+    y = "Avtivity Times",
+  ) 
 ```
 
 
